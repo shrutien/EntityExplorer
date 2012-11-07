@@ -1,3 +1,6 @@
 target
 wikipedia-lucene*
 log/*log
+src/.DS_Store
+
+*.prefs
