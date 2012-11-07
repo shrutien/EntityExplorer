@@ -157,12 +157,9 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 		m.close();
 		
 		response.setCharacterEncoding("UTF-8");
-		try {
-			response.setContentType("application/json");
-			response.getWriter().write(outputJSONArray.toString(4));
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		response.setContentType("application/json");
+		response.getWriter().write(outputJSONArray.toString());
+		
 		response.flushBuffer();
 	}
 
