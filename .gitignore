@@ -4,3 +4,9 @@ log/*log
 src/.DS_Store
 
 *.prefs
+
+.DS_Store
+
+.classpath
+
+.project
