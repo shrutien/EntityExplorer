@@ -20,12 +20,12 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
+import edu.isi.index.MongoDBHandler.DB_COLLECTIONS;
 import edu.isi.index.MongoDBHandler.categoriesLinks_SCHEMA;
 import edu.isi.index.MongoDBHandler.categories_SCHEMA;
 import edu.isi.index.MongoDBHandler.pagesAndCategories_SCHEMA;
 import edu.isi.index.MongoDBHandler.pagesInfoboxAttributes_SCHEMA;
 import edu.isi.index.MongoDBHandler.pages_SCHEMA;
-import edu.isi.index.WikipediaIndexer.DB_COLLECTIONS;
 import edu.jhu.nlp.wikipedia.PageCallbackHandler;
 import edu.jhu.nlp.wikipedia.WikiPage;
 
@@ -80,7 +80,7 @@ public class SAXWikiPageHandler implements PageCallbackHandler {
 
 	@Override
 	public void process(WikiPage page) {
-		int pageId = pageIndexCounter.incrementAndGet();
+		
 		String wikiPageId = page.getID();
 		String pageTitle = page.getTitle().trim();
 		//logger.info("Page: " + page.getTitle());
@@ -115,6 +115,7 @@ public class SAXWikiPageHandler implements PageCallbackHandler {
 			
 			// else index the page and save the category info associated with this page
 			else {
+				int pageId = pageIndexCounter.incrementAndGet();
 				wikiPagescounter++;
 				if (wikiPagescounter % 50000 == 0) {
 					logger.info("Done with " + wikiPagescounter + " wiki pages!");
@@ -162,7 +163,7 @@ public class SAXWikiPageHandler implements PageCallbackHandler {
 				}
 			}
 		} catch (IOException e) {
-			logger.error("Error occured while parsing page with title: " + pageTitle + " Wiki ID: " + page.getID() + " App Id: " + pageId);
+			logger.error("Error occured while parsing page with title: " + pageTitle + " Wiki ID: " + page.getID());
 		}
 	}
 	

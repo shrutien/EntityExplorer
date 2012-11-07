@@ -22,7 +22,10 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
@@ -30,6 +33,8 @@ import com.mongodb.WriteConcern;
 import edu.isi.category.CategoryTree;
 import edu.isi.category.CategoryTreeBuilder;
 import edu.isi.index.MongoDBHandler;
+import edu.isi.index.MongoDBHandler.DB_COLLECTIONS;
+import edu.isi.index.MongoDBHandler.pagecache_SCHEMA;
 import edu.isi.lucene.WikipediaLuceneQuery;
 
 public class CategoryHierarchiesLookup extends HttpServlet {
@@ -118,22 +123,32 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 		
 		/** Build the trees and store them in the output JSON object **/
 		JSONArray outputJSONArray = new JSONArray();
+		DBCollection pageCacheColl = wikiDB.getCollection(DB_COLLECTIONS.pagecache.name());
 		for (String pageTitle: categoryMap.keySet()) {
 			try {
-				List<Integer> categoriesIds = categoryMap.get(pageTitle);
-				JSONObject pageObj = new JSONObject();
-				pageObj.put(Output_JSONSchema.pageTitle.name(), pageTitle);
-				JSONArray treeArray = new JSONArray();
-				for (Integer categoryId: categoriesIds) {
-					CategoryTreeBuilder treeBuilder = new CategoryTreeBuilder(categoryId, maxTreeDepth);
-					CategoryTree categoryTree = treeBuilder.buildTree(wikiDB);
-					if (categoryTree != null)
-						treeArray.put(categoryTree.getJSONRepresentation());
-					else
-						logger.error("Error occured while builging tree. Check logs!");
+				/** Check if the forest of tress already exists in the cache for this page **/
+				DBObject cachedPageCopy = pageCacheColl.findOne(new BasicDBObject(pagecache_SCHEMA.pageTitle.name(), pageTitle));
+				JSONObject pageObj = null;
+				if (cachedPageCopy != null) {
+					JSONArray forest = new JSONArray(cachedPageCopy.get(pagecache_SCHEMA.forest.name()).toString());
+					pageObj = getPageAndForestObject(pageTitle, forest, pageScores);
+				} else {
+					List<Integer> categoriesIds = categoryMap.get(pageTitle);
+					JSONArray forest = new JSONArray();
+					for (Integer categoryId: categoriesIds) {
+						CategoryTreeBuilder treeBuilder = new CategoryTreeBuilder(categoryId, maxTreeDepth);
+						CategoryTree categoryTree = treeBuilder.buildTree(wikiDB);
+						if (categoryTree != null)
+							forest.put(categoryTree.getJSONRepresentation());
+						else
+							logger.error("Error occured while builing tree. Check logs!");
+					}
+					pageObj = getPageAndForestObject(pageTitle, forest, pageScores);
+					
+					// Store the page in cache
+					pageCacheColl.insert(new BasicDBObject(pagecache_SCHEMA.pageTitle.name(), pageTitle)
+							.append(pagecache_SCHEMA.forest.name(), forest.toString()));
 				}
-				pageObj.put(Output_JSONSchema.trees.name(), treeArray);
-				pageObj.put(Output_JSONSchema.pageLuceneScore.name(), pageScores.get(pageTitle));
 				outputJSONArray.put(pageObj);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -149,5 +164,13 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 			e.printStackTrace();
 		}
 		response.flushBuffer();
+	}
+
+	private JSONObject getPageAndForestObject(String pageTitle, JSONArray forest, Map<String, Float> pageScores) throws JSONException {
+		JSONObject pageObj = new JSONObject();
+		pageObj.put(Output_JSONSchema.pageTitle.name(), pageTitle);
+		pageObj.put(Output_JSONSchema.trees.name(), forest);
+		pageObj.put(Output_JSONSchema.pageLuceneScore.name(), pageScores.get(pageTitle));
+		return pageObj;
 	}
 }

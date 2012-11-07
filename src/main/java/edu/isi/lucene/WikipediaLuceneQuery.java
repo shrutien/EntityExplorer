@@ -34,6 +34,7 @@ import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
 
 import edu.isi.index.MongoDBHandler;
+import edu.isi.index.MongoDBHandler.DB_COLLECTIONS;
 import edu.isi.index.MongoDBHandler.pagesAndCategories_SCHEMA;
 import edu.isi.index.SAXWikiPageHandler.INDEX_FIELD_NAME;
 import edu.isi.index.WikipediaIndexer;
@@ -57,7 +58,7 @@ public class WikipediaLuceneQuery {
 			throws ParseException, CorruptIndexException, IOException {
 		Map<String,List<Integer>> categoriesMap = new HashMap<String, List<Integer>>();
 		
-		DBCollection pagesAndCategoriesColl = wikiDB.getCollection(WikipediaIndexer.DB_COLLECTIONS.pagesAndCategories.name());
+		DBCollection pagesAndCategoriesColl = wikiDB.getCollection(DB_COLLECTIONS.pagesAndCategories.name());
 		
 		/** Prepare the Lucene query **/
 		BooleanQuery finalQuery = new BooleanQuery();
@@ -97,7 +98,6 @@ public class WikipediaLuceneQuery {
 	    	 // Get all the associated categories with that page
 	    	 DBCursor catCursor = pagesAndCategoriesColl.find(new BasicDBObject(pagesAndCategories_SCHEMA.pageId.name(), pageId));
 	    	 List<Integer> categoriesIds = new ArrayList<Integer>();
-	    	 System.out.println("Cat size: " + catCursor.count());
 	    	 while(catCursor.hasNext()) {
 	    		 DBObject relObj = catCursor.next();
 	    		 Integer catId = Integer.parseInt(relObj.get(pagesAndCategories_SCHEMA.categoryId.name()).toString());
@@ -137,8 +137,8 @@ public class WikipediaLuceneQuery {
 			} else {
 				IndexReader indexReader = IndexReader.open(FSDirectory.open(new File(indexDirectoryName)));
 				IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-				String entity = "Arsenal F.C.";
-				String ctxWords = "football";
+				String entity = "Obama Barack.";
+				String ctxWords = "";
 				WikipediaLuceneQuery qry = new WikipediaLuceneQuery(entity, ctxWords, 1, indexSearcher);
 				Map<String,List<Integer>> results = qry.getAllCategoryIds(wikiDB);
 				System.out.println(results);

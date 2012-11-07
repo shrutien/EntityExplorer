@@ -6,7 +6,7 @@
   <display-name>Archetype Created Web Application</display-name>
   <context-param>
 		<param-name>LUCENE_INDEX_DIRECTORY_PATH</param-name>
-		<param-value>/Users/shubhamgupta/Documents/eclipse/workspace/wikipedia-indexer/wikipedia-lucene-index/</param-value>
+		<param-value>/Users/shubhamgupta/Documents/eclipse/workspace/WikipediaHierarchyExtractor/wikipedia-lucene-index-3/</param-value>
 	</context-param>
 	
 	<servlet>

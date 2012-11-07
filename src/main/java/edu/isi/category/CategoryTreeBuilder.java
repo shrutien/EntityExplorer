@@ -17,9 +17,9 @@ import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
 
 import edu.isi.index.MongoDBHandler;
+import edu.isi.index.MongoDBHandler.DB_COLLECTIONS;
 import edu.isi.index.MongoDBHandler.categoriesLinks_SCHEMA;
 import edu.isi.index.MongoDBHandler.categories_SCHEMA;
-import edu.isi.index.WikipediaIndexer.DB_COLLECTIONS;
 
 public class CategoryTreeBuilder {
 	private final int seedCategoryId;

@@ -11,7 +11,9 @@ public class MongoDBHandler {
 	public static String HOSTNAME = "localhost";
 	public static String DB_NAME = "wiki3";
 	
-	
+	public enum DB_COLLECTIONS {
+		pages, categories, categoriesLinks, pagesAndCategories, pagesInfoboxAttributes, pagecache
+	}
 	
 	public enum pages_SCHEMA {
 		title, _id
@@ -31,6 +33,10 @@ public class MongoDBHandler {
 	
 	public enum pagesInfoboxAttributes_SCHEMA {
 		pageId, attribute
+	}
+	
+	public enum pagecache_SCHEMA {
+		pageTitle, forest
 	}
 	
 	public static Mongo getNewMongoConnection() throws UnknownHostException, MongoException {

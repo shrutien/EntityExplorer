@@ -27,10 +27,6 @@ public class WikipediaIndexer {
 	public static final Version APP_LUCENE_VERSION = Version.LUCENE_36;
 	private static Logger logger = LoggerFactory.getLogger(WikipediaIndexer.class);
 	
-	public enum DB_COLLECTIONS {
-		pages, categories, categoriesLinks, pagesAndCategories, pagesInfoboxAttributes
-	}
-	
 	public static void main(String[] args) {
 		logger.info("Starting application ...");
 		/** Setup mongodb **/
