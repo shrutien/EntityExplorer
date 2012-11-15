@@ -17,4 +17,22 @@
 		<servlet-name>CategoryHierarchiesLookup</servlet-name>
 		<url-pattern>/lookupHierarchies</url-pattern>
 	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>IdentifyEntitiesServlet</servlet-name>
+		<servlet-class>edu.isi.webserver.IdentifyEntitiesServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>IdentifyEntitiesServlet</servlet-name>
+		<url-pattern>identifyEntities</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>CreateGraphForEntitiesServlet</servlet-name>
+		<servlet-class>edu.isi.webserver.CreateGraphForEntitiesServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CreateGraphForEntitiesServlet</servlet-name>
+		<url-pattern>graphEntities</url-pattern>
+	</servlet-mapping>
 </web-app>

@@ -1,0 +1,56 @@
+table#entitiesTable tr.alt {
+	background-color: #F9F9F9;
+}
+
+table#entitiesTable tr.highlight-row {
+	background-color: #CFCFCF;
+	cursor: pointer;
+}
+
+td.checkboxCell {
+	text-align: center; /* center checkbox horizontally */
+    vertical-align: middle; /* center checkbox vertically */
+}
+
+.link {
+  stroke: #ccc;
+}
+
+.node text {
+  pointer-events: none;
+  font: 10px sans-serif;
+}
+
+.modal-body {
+    max-height: 1200px;
+}
+
+#graphWindow {
+	width: 1000px; /* SET THE WIDTH OF THE MODAL */
+	margin: -350px 0 0 -500px; /* CHANGE MARGINS TO ACCOMODATE THE NEW WIDTH (original = margin: -250px 0 0 -280px;) */
+}
+
+g.node.PAGE_TITLE {
+	fill:black;
+}
+
+g.node.CATEGORY {
+	fill:green;
+}
+
+g.node.CATEGORY text {
+	fill: #3333CC;
+}
+
+span.header {
+	font-size: 18px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+
+}
+
+span.highlight-find {
+	background-color:yellow;
+	box-shadow: 5px 5px 2px #888888;
+	padding: 3px;
+}

@@ -64,6 +64,11 @@
 		<artifactId>javax.servlet-api</artifactId>
 		<version>3.0.1</version>
 	</dependency>
+	<dependency>
+		<groupId>net.sf.jgrapht</groupId>
+		<artifactId>jgrapht</artifactId>
+		<version>0.8.3</version>
+	</dependency>
   </dependencies>
   <build>
     <finalName>wikipedia-indexer</finalName>

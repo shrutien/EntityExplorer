@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Wikipedia Category Grapher</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<!-- Le styles -->
+		<link href="css/bootstrap.css" rel="stylesheet">
+		<style>
+			body {
+				padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+			}
+		</style>
+		<link href="css/bootstrap-responsive.css" rel="stylesheet">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="css/jasny-bootstrap.css" rel="stylesheet">
+		<link href="css/app.css" rel="stylesheet">
+
+		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<script src="js/jquery-1.8.2.min.js"></script>
+		<script src="js/bootstrap-fileupload.js"></script>
+		<script src="js/jasny-bootstrap.min.js"></script>
+		<script src="js/bootstrap.js"></script>
+		<script src="js/d3.v2.min.js"></script>
+		
+		<script>
+			$(function() {
+				$("table#entitiesTable tbody tr").hover(function() {
+			    	$(this).addClass("highlight");
+			   	},
+			    function() {
+			    	$(this).removeClass("highlight");
+			   })
+			});
+		
+			function identifyEntitiesHandler() {
+				var options = new Object();
+				options["text"] = $("textarea#textbox").val();
+				
+				var returned = $.ajax({
+					url : "identifyEntities",
+					type : "POST",
+					data : options,
+					dataType : "json",
+					complete : function(xhr, textStatus) {
+						var json = $.parseJSON(xhr.responseText);
+						var entitiesArr = json["entities"];
+						$("table#entitiesTable tbody tr").remove();
+						
+						$("p#entitiesCount").text(entitiesArr.length + " entities found");
+						
+						$.each(entitiesArr, function(index, entity) {
+							var entityName = entity["entityName"];
+							var regex = new RegExp(entityName, "ig");
+							options["text"] = options["text"].replace(regex, '<span class="highlight-find">' + entityName + '</span>');
+							console.log(options["text"]);
+							$("table#entitiesTable tbody").append($("<tr>")
+								.append($("<td>").text(entity["title"]))
+								.append($("<td>").append($("<a>").attr("href", entity["URL"]).text("Wikipedia Link")))
+								.append($("<td>").append($("<input>").attr("type", "checkbox").attr('checked', true)).addClass("checkboxCell"))
+								.hover(function() {
+							    		$(this).addClass("highlight-row");},
+							     	function() {
+							    		$(this).removeClass("highlight-row");})
+							   	.data("dbID", entity["dbID"])
+							)
+						});
+						var height = $("textarea#textbox").height();
+						$("textarea#textbox").remove();
+						var newDiv = $("<div>").append(options["text"]).height(height+22);
+						$("div#TextDiv button").before(newDiv);
+						console.log(options["text"]);
+						
+						if (entitiesArr.length > 0) {
+							$("table#entitiesTable").show();
+							$("button#graphEntities").show();
+							$("#entitiesTable tbody tr:even").addClass("alt");
+						}
+							
+					}
+				});
+			}
+			
+			function graphEntitiesHandler() {
+				var options = new Object();
+				var graphEntities = new Array();
+				
+				$("#entitiesTable tbody tr").filter(function(index) {
+					return $("td input", this).attr('checked');
+				}).each(function(index, row) {
+					graphEntities.push($(this).data("dbID"));
+				});
+				options["entities"] = JSON.stringify(graphEntities);
+				console.log(options["entities"]);
+				
+				var returned = $.ajax({
+					url : "graphEntities",
+					type : "POST",
+					data : options,
+					dataType : "json",
+					complete : function(xhr, textStatus) {
+						var json = $.parseJSON(xhr.responseText);
+						$("#graphWindow svg").remove();
+						drawD3Graph(json);
+						$("#graphWindow").modal("show");
+					}
+				});
+			}
+			
+			function drawD3Graph(json) {
+				var width = 1000,
+			    	height = 700,
+			    	r = 6;
+			
+				var svg = d3.select("div#graphWindowBody").append("svg")
+				    .attr("width", width)
+				    .attr("height", height);
+				
+				var force = self.force = d3.layout.force()
+				    .nodes(json.nodes)
+			        .links(json.links)
+				    .linkDistance(150)
+				    .charge(-600)
+			        .size([width, height])
+			        .start();
+				
+				var node_drag = d3.behavior.drag()
+			        .on("dragstart", dragstart)
+			        .on("drag", dragmove)
+			        .on("dragend", dragend);
+			
+			    function dragstart(d, i) {
+			        force.stop() // stops the force auto positioning before you start dragging
+			    }
+			
+			    function dragmove(d, i) {
+			        d.px += d3.event.dx;
+			        d.py += d3.event.dy;
+			        d.x += d3.event.dx;
+			        d.y += d3.event.dy; 
+			        tick(); // this is the key to make it work together with updating both px,py,x,y on d !
+			    }
+			
+			    function dragend(d, i) {
+			        d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
+			        tick();
+			        force.resume();
+			    }
+				
+				var link = svg.selectAll(".link")
+				    .data(json.links)
+				  .enter().append("line")
+				    .attr("class", "link");
+				
+				var node = svg.selectAll(".node")
+				    .data(json.nodes)
+				  .enter().append("g")
+				    .attr("class", function(d) {
+				    	return "node " + d.group;
+				    });
+				    // .call(node_drag);
+				    
+				
+				node.append("svg:circle")
+				    .attr("r", function(d) { 
+				    	if (d.group == "PAGE_TITLE")
+				    		return r +3;
+				    	else
+				    		return r - 0.75;
+				    })
+				    // .style("fill", function(d) { return fill(d.group); 
+				    // })
+				    // .style("stroke", function(d) { return d3.rgb(fill(d.group)).darker(); })
+				    .call(node_drag);
+				
+				node.append("text")
+				    .attr("dx", 12)
+				    .attr("dy", ".35em")
+				    .text(function(d) { return d.name });
+				
+				force.on("tick", tick);
+				
+				function tick() {
+				  // node.attr("cx", function(d) { return d.x = Math.max(r, Math.min(width - r, d.x)); })
+        				// .attr("cy", function(d) { return d.y = Math.max(r, Math.min(height - r, d.y)); });
+				
+				  node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(width - r, d.x)) 
+				  	+ "," + Math.max(r, Math.min(height - r, d.y))+ ")"; });
+				  	
+				  	link.attr("x1", function(d) { return d.source.x; })
+				      .attr("y1", function(d) { return d.source.y; })
+				      .attr("x2", function(d) { return d.target.x; })
+				      .attr("y2", function(d) { return d.target.y; });
+				};
+			}
+		</script>
+
+	</head>
+
+	<body>
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </a>
+					<a class="brand" href="#">Wikipedia Category Grapher</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li class="active">
+								<a href="main.html">Main</a>
+							</li>
+							<li>
+								<a href="contact.html">Contact</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="container">
+			<!-- <div class="row">
+				<div class="span10">
+					<span class="label label-info header span9">Paste your text below</span>
+				</div>
+			</div> -->
+			<br />
+			<div class="row">
+				<div class="span10" id="TextDiv">
+					<textarea class="editor" name="text" id="textbox" placeholder="Paste your text here">
+						is Messi better or Ronaldo?
+					</textarea>
+					
+					<button class="btn btn-large btn-primary" onclick="identifyEntitiesHandler();">Identify Entities</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="span6">
+					<br />
+					<p id="entitiesCount" class="lead">
+					</p>
+					<table id="entitiesTable" style="display: none" class="table table-bordered span6">
+						<thead>
+							<tr>
+								<th>Entity Name</th>
+								<th>Wikipedia URL</th>
+								<th>Use in Graph</th>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+					<button class="btn btn-large btn-primary" id="graphEntities" onclick="graphEntitiesHandler();" style="display: none">Show Links Between Selected Entities</button>
+				</div>
+			</div>
+		</div>
+		<!-- Modal for application information -->
+		<div class="modal hide fade" id="graphWindow">
+			<div class="modal-header">
+				<a href="#" class="close" data-dismiss="modal">&times;</a>
+				<h4>Entities Network Graph</h3>
+			</div>
+			<div class="modal-body" id="graphWindowBody">
+				
+			</div>
+		</div>
+	</body>
+</html>

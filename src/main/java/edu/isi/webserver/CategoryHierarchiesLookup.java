@@ -46,7 +46,7 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 	private static Logger logger = LoggerFactory.getLogger(CategoryHierarchiesLookup.class);
 	private static final long serialVersionUID = 1L;
 	
-	public enum Output_JSONSchema {
+	private enum OUTPUT_JSON_SCHEMA {
 		pageTitle, trees, pageLuceneScore
 	}
 	
@@ -54,11 +54,11 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 		entity, contextwords, pagecount, maxtreedepth
 	}
 	
-	private enum SERVLET_CONTEXT_ATTRIBUTE {
+	public enum SERVLET_CONTEXT_ATTRIBUTE {
 		indexSearcher
 	}
 	
-	private enum CONTEXT_PARAM_ATTRIBUTE {
+	public enum CONTEXT_PARAM_ATTRIBUTE {
 		LUCENE_INDEX_DIRECTORY_PATH
 	}
 	
@@ -165,9 +165,9 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 
 	private JSONObject getPageAndForestObject(String pageTitle, JSONArray forest, Map<String, Float> pageScores) throws JSONException {
 		JSONObject pageObj = new JSONObject();
-		pageObj.put(Output_JSONSchema.pageTitle.name(), pageTitle);
-		pageObj.put(Output_JSONSchema.trees.name(), forest);
-		pageObj.put(Output_JSONSchema.pageLuceneScore.name(), pageScores.get(pageTitle));
+		pageObj.put(OUTPUT_JSON_SCHEMA.pageTitle.name(), pageTitle);
+		pageObj.put(OUTPUT_JSON_SCHEMA.trees.name(), forest);
+		pageObj.put(OUTPUT_JSON_SCHEMA.pageLuceneScore.name(), pageScores.get(pageTitle));
 		return pageObj;
 	}
 }

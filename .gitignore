@@ -10,3 +10,4 @@ src/.DS_Store
 .classpath
 
 .project
+dump/

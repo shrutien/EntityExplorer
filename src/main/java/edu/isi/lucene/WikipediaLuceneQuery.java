@@ -38,6 +38,7 @@ import edu.isi.index.MongoDBHandler.DB_COLLECTIONS;
 import edu.isi.index.MongoDBHandler.pagesAndCategories_SCHEMA;
 import edu.isi.index.SAXWikiPageHandler.INDEX_FIELD_NAME;
 import edu.isi.index.WikipediaIndexer;
+import edu.jhu.nlp.wikipedia.WikiPage;
 
 public class WikipediaLuceneQuery {
 	private String entityName;
@@ -60,26 +61,7 @@ public class WikipediaLuceneQuery {
 		
 		DBCollection pagesAndCategoriesColl = wikiDB.getCollection(DB_COLLECTIONS.pagesAndCategories.name());
 		
-		/** Prepare the Lucene query **/
-		BooleanQuery finalQuery = new BooleanQuery();
-		// Create a query for each term in the entity name
-		QueryParser parser = new QueryParser(WikipediaIndexer.APP_LUCENE_VERSION, INDEX_FIELD_NAME.title.name()
-				, new StandardAnalyzer(WikipediaIndexer.APP_LUCENE_VERSION));
-		Query query = parser.parse(entityName);
-		finalQuery.add(query, BooleanClause.Occur.SHOULD);
-		
-		// Add the context words too
-		if (contextWords != null && !contextWords.trim().equals("")) {
-			QueryParser parser2 = new QueryParser(WikipediaIndexer.APP_LUCENE_VERSION, INDEX_FIELD_NAME.text.name()
-					, new StandardAnalyzer(WikipediaIndexer.APP_LUCENE_VERSION));
-			Query query2 = parser2.parse(contextWords);
-			finalQuery.add(query2, BooleanClause.Occur.SHOULD);
-		}
-		
-		TopScoreDocCollector collector = TopScoreDocCollector.create(resultCount, true);
-	    indexSearcher.search(finalQuery, collector);
-	    
-	    ScoreDoc[] hits = collector.topDocs().scoreDocs;
+	    ScoreDoc[] hits = runQueryAndGetScoreDocArray();
 	    
 	    if (hits.length == 0) {
 	    	logger.error("No results found!!!");
@@ -111,6 +93,30 @@ public class WikipediaLuceneQuery {
 	public Map<String, Float> getPageScores() {
 		return pageScores;
 	}
+	
+	private ScoreDoc[] runQueryAndGetScoreDocArray() throws IOException, ParseException {
+		/** Prepare the Lucene query **/
+		BooleanQuery finalQuery = new BooleanQuery();
+		// Create a query for each term in the entity name
+		QueryParser parser = new QueryParser(WikipediaIndexer.APP_LUCENE_VERSION, INDEX_FIELD_NAME.title.name()
+				, new StandardAnalyzer(WikipediaIndexer.APP_LUCENE_VERSION));
+		Query query = parser.parse(entityName);
+		finalQuery.add(query, BooleanClause.Occur.SHOULD);
+		
+		// Add the context words too
+		if (contextWords != null && !contextWords.trim().equals("")) {
+			QueryParser parser2 = new QueryParser(WikipediaIndexer.APP_LUCENE_VERSION, INDEX_FIELD_NAME.text.name()
+					, new StandardAnalyzer(WikipediaIndexer.APP_LUCENE_VERSION));
+			Query query2 = parser2.parse(contextWords);
+			finalQuery.add(query2, BooleanClause.Occur.SHOULD);
+		}
+		
+		TopScoreDocCollector collector = TopScoreDocCollector.create(resultCount, true);
+	    indexSearcher.search(finalQuery, collector);
+	    
+	    return collector.topDocs().scoreDocs;
+	}
+			
 
 	public static void main(String[] args) throws ParseException {
 		/** Setup mongodb **/
@@ -148,5 +154,26 @@ public class WikipediaLuceneQuery {
 		} catch (IOException e) {
 			logger.error("Error occured while attempting to setup index reader.", e);
 		}
+	}
+
+	
+	public WikiPage getTopMatchingWikiPage(DB wikiDB) throws IOException, ParseException {
+		ScoreDoc[] hits = runQueryAndGetScoreDocArray();
+		int topDocId = hits[0].doc;
+		
+		Document doc = indexSearcher.doc(topDocId);
+		String pageTitle = doc.get(INDEX_FIELD_NAME.title.name());
+		int wikiPageId = Integer.parseInt(doc.get(INDEX_FIELD_NAME.wikiId.name()));
+		int dbPageId = Integer.parseInt(doc.get(INDEX_FIELD_NAME.dbPageId.name()));
+		
+		// Construct the WikiPage object
+		WikiPage topWikiPage = new WikiPage();
+		topWikiPage.setID(Integer.toString(wikiPageId));
+		topWikiPage.setTitle(pageTitle);
+		topWikiPage.setWikiText(Integer.toString(dbPageId));
+		
+		logger.info("Found match! Document matching field: " + pageTitle + " Score: " + hits[0].score);
+		
+		return topWikiPage;
 	}
 }
