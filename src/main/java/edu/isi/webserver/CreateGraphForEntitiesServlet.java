@@ -89,6 +89,7 @@ public class CreateGraphForEntitiesServlet extends HttpServlet {
 		// Get the JSON of graph to visualize with D3
 		JSONObject graphJson = createJSONForGraph(graph, pageTitles);
 		
+		m.close();
 		System.out.println("Size: " + graph.vertexSet().size());
 		System.out.println(graphJson.toString());
 		response.setCharacterEncoding("UTF-8");

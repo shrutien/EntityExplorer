@@ -22,7 +22,7 @@ td.checkboxCell {
 }
 
 .modal-body {
-    max-height: 1200px;
+    max-height: 800px;
 }
 
 #graphWindow {
@@ -31,15 +31,18 @@ td.checkboxCell {
 }
 
 g.node.PAGE_TITLE {
-	fill:black;
+	fill:#104E8B;
+}
+g.node.PAGE_TITLE text{
+	fill:#000000;
 }
 
 g.node.CATEGORY {
-	fill:green;
+	fill:#458B00;
 }
 
 g.node.CATEGORY text {
-	fill: #3333CC;
+	fill: #000000;
 }
 
 span.header {

@@ -118,7 +118,7 @@
 			    	height = 700,
 			    	r = 6;
 			
-				var svg = d3.select("div#graphWindowBody").append("svg")
+				var svg = d3.select("div#graphWindowBody").append("svg:svg")
 				    .attr("width", width)
 				    .attr("height", height);
 				
@@ -156,28 +156,32 @@
 				var link = svg.selectAll(".link")
 				    .data(json.links)
 				  .enter().append("line")
-				    .attr("class", "link");
+				    .attr("class", "link")
+				    .attr("x1", function(d) { return d.source.x; })
+			        .attr("y1", function(d) { return d.source.y; })
+			        .attr("x2", function(d) { return d.target.x; })
+			        .attr("y2", function(d) { return d.target.y; });
 				
 				var node = svg.selectAll(".node")
 				    .data(json.nodes)
 				  .enter().append("g")
 				    .attr("class", function(d) {
 				    	return "node " + d.group;
-				    });
-				    // .call(node_drag);
+				    })
+				    .call(node_drag);
 				    
 				
 				node.append("svg:circle")
 				    .attr("r", function(d) { 
 				    	if (d.group == "PAGE_TITLE")
-				    		return r +3;
+				    		return r +5;
 				    	else
 				    		return r - 0.75;
 				    })
 				    // .style("fill", function(d) { return fill(d.group); 
 				    // })
 				    // .style("stroke", function(d) { return d3.rgb(fill(d.group)).darker(); })
-				    .call(node_drag);
+				    //.call(node_drag);
 				
 				node.append("text")
 				    .attr("dx", 12)
@@ -190,9 +194,10 @@
 				  // node.attr("cx", function(d) { return d.x = Math.max(r, Math.min(width - r, d.x)); })
         				// .attr("cy", function(d) { return d.y = Math.max(r, Math.min(height - r, d.y)); });
 				
-				  node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(width - r, d.x)) 
-				  	+ "," + Math.max(r, Math.min(height - r, d.y))+ ")"; });
+				  // node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(width - r, d.x)) 
+				  	// + "," + Math.max(r, Math.min(height - r, d.y))+ ")"; });
 				  	
+				  	 node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 				  	link.attr("x1", function(d) { return d.source.x; })
 				      .attr("y1", function(d) { return d.source.y; })
 				      .attr("x2", function(d) { return d.target.x; })
@@ -232,9 +237,7 @@
 			<br />
 			<div class="row">
 				<div class="span10" id="TextDiv">
-					<textarea class="editor" name="text" id="textbox" placeholder="Paste your text here">
-						is Messi better or Ronaldo?
-					</textarea>
+					<textarea class="editor" name="text" id="textbox" placeholder="Paste your text here"></textarea>
 					
 					<button class="btn btn-large btn-primary" onclick="identifyEntitiesHandler();">Identify Entities</button>
 				</div>
