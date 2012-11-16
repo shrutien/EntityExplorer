@@ -90,8 +90,8 @@ public class CreateGraphForEntitiesServlet extends HttpServlet {
 		JSONObject graphJson = createJSONForGraph(graph, pageTitles);
 		
 		m.close();
-		System.out.println("Size: " + graph.vertexSet().size());
-		System.out.println(graphJson.toString());
+		logger.info("Graph vertex Size: " + graph.vertexSet().size());
+		// logger.debug(graphJson.toString());
 		response.setCharacterEncoding("UTF-8");
 		response.getWriter().write(graphJson.toString());
 		response.flushBuffer();

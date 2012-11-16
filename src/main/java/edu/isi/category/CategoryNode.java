@@ -41,6 +41,10 @@ public class CategoryNode {
 		return children;
 	}
 	
+	public int getId() {
+		return id;
+	}
+
 	public boolean hasChildren() {
 		return (!children.isEmpty());
 	}

@@ -35,4 +35,13 @@
 		<servlet-name>CreateGraphForEntitiesServlet</servlet-name>
 		<url-pattern>graphEntities</url-pattern>
 	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>ViewCategoriesForEntity</servlet-name>
+		<servlet-class>edu.isi.webserver.ViewCategoriesForEntity</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ViewCategoriesForEntity</servlet-name>
+		<url-pattern>viewCategoriesForEntity</url-pattern>
+	</servlet-mapping>
 </web-app>

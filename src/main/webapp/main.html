@@ -16,7 +16,7 @@
 		</style>
 		<link href="css/bootstrap-responsive.css" rel="stylesheet">
 		<link href="css/bootstrap.min.css" rel="stylesheet">
-		<link href="css/jasny-bootstrap.css" rel="stylesheet">
+		
 		<link href="css/app.css" rel="stylesheet">
 
 		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -24,10 +24,9 @@
 		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
 		<script src="js/jquery-1.8.2.min.js"></script>
-		<script src="js/bootstrap-fileupload.js"></script>
-		<script src="js/jasny-bootstrap.min.js"></script>
 		<script src="js/bootstrap.js"></script>
 		<script src="js/d3.v2.min.js"></script>
+		<script src="js/visualization.js"></script>
 		
 		<script>
 			$(function() {
@@ -62,8 +61,9 @@
 							console.log(options["text"]);
 							$("table#entitiesTable tbody").append($("<tr>")
 								.append($("<td>").text(entity["title"]))
-								.append($("<td>").append($("<a>").attr("href", entity["URL"]).text("Wikipedia Link")))
+								.append($("<td>").append($("<a>").attr("href", entity["URL"]).attr("target", "_blank").text("Wikipedia Link")))
 								.append($("<td>").append($("<input>").attr("type", "checkbox").attr('checked', true)).addClass("checkboxCell"))
+								.append($('<td>').append($("<button>").addClass('btn btn-small btn-info btn-block').click(viewCategoryHandler).text("View Categories")))
 								.hover(function() {
 							    		$(this).addClass("highlight-row");},
 							     	function() {
@@ -73,9 +73,8 @@
 						});
 						var height = $("textarea#textbox").height();
 						$("textarea#textbox").remove();
-						var newDiv = $("<div>").append(options["text"]).height(height+22);
+						var newDiv = $("<div>").append(options["text"]).height(height+20);
 						$("div#TextDiv button").before(newDiv);
-						console.log(options["text"]);
 						
 						if (entitiesArr.length > 0) {
 							$("table#entitiesTable").show();
@@ -83,6 +82,27 @@
 							$("#entitiesTable tbody tr:even").addClass("alt");
 						}
 							
+					}
+				});
+			}
+			
+			function viewCategoryHandler() {
+				var options = new Object();
+				options["pageDBID"] = $(this).parents("tr").data("dbID");
+				console.log(options["pageDBID"]);
+				
+				var returned = $.ajax({
+					url : "viewCategoriesForEntity",
+					type : "POST",
+					data : options,
+					dataType : "json",
+					complete : function(xhr, textStatus) {
+						// console.log(xhr.responseText)
+						var json = $.parseJSON(xhr.responseText);
+						$("#categoryWindow svg").remove();
+						// drawD3CategoryCircularGraph(json);
+						drawD3CategoryTreeGraph(json);
+						$("#categoryWindow").modal("show");
 					}
 				});
 			}
@@ -107,103 +127,13 @@
 					complete : function(xhr, textStatus) {
 						var json = $.parseJSON(xhr.responseText);
 						$("#graphWindow svg").remove();
-						drawD3Graph(json);
+						drawD3EntityGraph(json);
 						$("#graphWindow").modal("show");
 					}
 				});
 			}
 			
-			function drawD3Graph(json) {
-				var width = 1000,
-			    	height = 700,
-			    	r = 6;
 			
-				var svg = d3.select("div#graphWindowBody").append("svg:svg")
-				    .attr("width", width)
-				    .attr("height", height);
-				
-				var force = self.force = d3.layout.force()
-				    .nodes(json.nodes)
-			        .links(json.links)
-				    .linkDistance(150)
-				    .charge(-600)
-			        .size([width, height])
-			        .start();
-				
-				var node_drag = d3.behavior.drag()
-			        .on("dragstart", dragstart)
-			        .on("drag", dragmove)
-			        .on("dragend", dragend);
-			
-			    function dragstart(d, i) {
-			        force.stop() // stops the force auto positioning before you start dragging
-			    }
-			
-			    function dragmove(d, i) {
-			        d.px += d3.event.dx;
-			        d.py += d3.event.dy;
-			        d.x += d3.event.dx;
-			        d.y += d3.event.dy; 
-			        tick(); // this is the key to make it work together with updating both px,py,x,y on d !
-			    }
-			
-			    function dragend(d, i) {
-			        d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
-			        tick();
-			        force.resume();
-			    }
-				
-				var link = svg.selectAll(".link")
-				    .data(json.links)
-				  .enter().append("line")
-				    .attr("class", "link")
-				    .attr("x1", function(d) { return d.source.x; })
-			        .attr("y1", function(d) { return d.source.y; })
-			        .attr("x2", function(d) { return d.target.x; })
-			        .attr("y2", function(d) { return d.target.y; });
-				
-				var node = svg.selectAll(".node")
-				    .data(json.nodes)
-				  .enter().append("g")
-				    .attr("class", function(d) {
-				    	return "node " + d.group;
-				    })
-				    .call(node_drag);
-				    
-				
-				node.append("svg:circle")
-				    .attr("r", function(d) { 
-				    	if (d.group == "PAGE_TITLE")
-				    		return r +5;
-				    	else
-				    		return r - 0.75;
-				    })
-				    // .style("fill", function(d) { return fill(d.group); 
-				    // })
-				    // .style("stroke", function(d) { return d3.rgb(fill(d.group)).darker(); })
-				    //.call(node_drag);
-				
-				node.append("text")
-				    .attr("dx", 12)
-				    .attr("dy", ".35em")
-				    .text(function(d) { return d.name });
-				
-				force.on("tick", tick);
-				
-				function tick() {
-				  // node.attr("cx", function(d) { return d.x = Math.max(r, Math.min(width - r, d.x)); })
-        				// .attr("cy", function(d) { return d.y = Math.max(r, Math.min(height - r, d.y)); });
-				
-				  // node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(width - r, d.x)) 
-				  	// + "," + Math.max(r, Math.min(height - r, d.y))+ ")"; });
-				  	
-				  	 node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-				  	link.attr("x1", function(d) { return d.source.x; })
-				      .attr("y1", function(d) { return d.source.y; })
-				      .attr("x2", function(d) { return d.target.x; })
-				      .attr("y2", function(d) { return d.target.y; });
-				};
-			}
 		</script>
 
 	</head>
@@ -236,29 +166,34 @@
 			</div> -->
 			<br />
 			<div class="row">
-				<div class="span10" id="TextDiv">
-					<textarea class="editor" name="text" id="textbox" placeholder="Paste your text here"></textarea>
+				<div id="TextDiv" class="span10">
+					<textarea class="editor span10" name="text" id="textbox" placeholder="Paste your text here" rows="4">Messi or Cristiano Ronaldo?</textarea>
 					
-					<button class="btn btn-large btn-primary" onclick="identifyEntitiesHandler();">Identify Entities</button>
+					<button class="btn btn-large btn-success btn-block" onclick="identifyEntitiesHandler();">Identify Entities</button>
 				</div>
 			</div>
 			<div class="row">
-				<div class="span6">
+				<div class="span10">
 					<br />
 					<p id="entitiesCount" class="lead">
 					</p>
-					<table id="entitiesTable" style="display: none" class="table table-bordered span6">
+					<table id="entitiesTable" style="display: none" class="table table-bordered">
 						<thead>
 							<tr>
 								<th>Entity Name</th>
 								<th>Wikipedia URL</th>
 								<th>Use in Graph</th>
+								<th>Wikipedia Categories</th>
 							</tr>
 						</thead>
 						<tbody>
 						</tbody>
 					</table>
-					<button class="btn btn-large btn-primary" id="graphEntities" onclick="graphEntitiesHandler();" style="display: none">Show Links Between Selected Entities</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="span10">
+					<button class="btn btn-large btn-success btn-block" id="graphEntities" onclick="graphEntitiesHandler();" style="display: none">Show Links Between Selected Entities</button>
 				</div>
 			</div>
 		</div>
@@ -266,9 +201,20 @@
 		<div class="modal hide fade" id="graphWindow">
 			<div class="modal-header">
 				<a href="#" class="close" data-dismiss="modal">&times;</a>
-				<h4>Entities Network Graph</h3>
+				<h4>Entities Network Graph</h4>
 			</div>
 			<div class="modal-body" id="graphWindowBody">
+				
+			</div>
+		</div>
+		
+		<!-- Modal for category visualization -->
+		<div class="modal hide fade" id="categoryWindow">
+			<div class="modal-header">
+				<a href="#" class="close" data-dismiss="modal">&times;</a>
+				<h4>Entity's Wikipedia Category visualization</h4>
+			</div>
+			<div class="modal-body" id="categoryWindowBody">
 				
 			</div>
 		</div>

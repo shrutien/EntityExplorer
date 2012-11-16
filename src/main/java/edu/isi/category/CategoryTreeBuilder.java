@@ -56,7 +56,7 @@ public class CategoryTreeBuilder {
 		int currentDepth = 0;
 		while (!currentNodes.isEmpty() && currentDepth < depth ) {
 			CategoryNode node = currentNodes.poll();
-			String nodeId = node.getLabel();
+			int nodeId = node.getId();
 			
 			/** Get all the links **/
 			DBCursor childrenCursor = categoriesLinksColl.find(new BasicDBObject(categoriesLinks_SCHEMA.categoryId.name(), nodeId));

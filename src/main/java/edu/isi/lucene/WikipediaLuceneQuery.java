@@ -69,7 +69,7 @@ public class WikipediaLuceneQuery {
 	    }
 	    
 	    // Parse the Lucene results
-	    for (int i=hits.length-1; i>=0; i--) {	
+	    for (int i=hits.length-1; i>=0; i--) {
 	    	 int docId = hits[i].doc;
 	         Document d = indexSearcher.doc(docId);
 	         String pageTitle = d.get(INDEX_FIELD_NAME.title.name());
