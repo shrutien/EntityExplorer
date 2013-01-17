@@ -28,12 +28,25 @@
 	    <systemPath>${project.basedir}/lib/bzip2.jar</systemPath>
 	</dependency>
 	<dependency>
+	    <groupId>edu.stanford</groupId>
+	    <artifactId>nlp</artifactId>
+	    <version>1.0</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/lib/stanford-ner.jar</systemPath>
+	</dependency>
+
+	<dependency>
 	    <groupId>edu.jhu.nlp</groupId>
 	    <artifactId>wikixml-j</artifactId>
 	    <version>43</version>
 	    <scope>system</scope>
 	    <systemPath>${project.basedir}/lib/wikixmlj-r43.jar</systemPath>
 	</dependency>
+    <dependency>
+	    <groupId>uk.com.robust-it</groupId>
+	    <artifactId>cloning</artifactId>
+	    <version>1.9.0</version>
+    </dependency>
 	<dependency>
 		<groupId>org.apache.lucene</groupId>
 		<artifactId>lucene-core</artifactId>

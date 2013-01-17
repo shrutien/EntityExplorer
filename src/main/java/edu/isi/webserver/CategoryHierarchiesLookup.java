@@ -55,11 +55,11 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 	}
 	
 	public enum SERVLET_CONTEXT_ATTRIBUTE {
-		indexSearcher
+		indexSearcher, entityExtractorClassifier
 	}
 	
 	public enum CONTEXT_PARAM_ATTRIBUTE {
-		LUCENE_INDEX_DIRECTORY_PATH
+		LUCENE_INDEX_DIRECTORY_PATH, ENTITY_EXTRACTION_CLASSIFIER_DATA
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

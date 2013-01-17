@@ -75,6 +75,7 @@ public class SAXWikiPageHandler implements PageCallbackHandler {
 		pagesAndCategoriesColl.ensureIndex(new BasicDBObject(pagesAndCategories_SCHEMA.pageId.name(),1));
 		pagesAndCategoriesColl.ensureIndex(new BasicDBObject(pagesAndCategories_SCHEMA.categoryId.name(),1));
 		categoriesLinksColl.ensureIndex(new BasicDBObject(categoriesLinks_SCHEMA.categoryId.name(),1));
+		categoriesLinksColl.ensureIndex(new BasicDBObject(categoriesLinks_SCHEMA.parentCategoryId.name(),1));
 		pagesInfoboxAttributesColl.ensureIndex(new BasicDBObject(pagesInfoboxAttributes_SCHEMA.pageId.name(), 1));
 	}
 

@@ -3,10 +3,8 @@ package edu.isi.webserver;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.text.BreakIterator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +32,9 @@ import edu.isi.lucene.WikipediaLuceneQuery;
 import edu.isi.webserver.CategoryHierarchiesLookup.CONTEXT_PARAM_ATTRIBUTE;
 import edu.isi.webserver.CategoryHierarchiesLookup.SERVLET_CONTEXT_ATTRIBUTE;
 import edu.jhu.nlp.wikipedia.WikiPage;
+import edu.stanford.nlp.ie.AbstractSequenceClassifier;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.util.Triple;
 
 public class IdentifyEntitiesServlet extends HttpServlet {
 
@@ -53,7 +54,11 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 		String text = request.getParameter(SERVLET_PARAM_ATTR.text.name()).trim();
 		
 		/** Extract the entities **/
-		Set<String> entityNames = getEntities(text);
+//		Set<String> entityNames = getEntities(text);
+		@SuppressWarnings("unchecked")
+		AbstractSequenceClassifier<CoreLabel> classifier = 
+				(AbstractSequenceClassifier<CoreLabel>) request.getServletContext().getAttribute(SERVLET_CONTEXT_ATTRIBUTE.entityExtractorClassifier.name());
+		Set<String> entityNames = getEntitiesFromEntityExtractor(text, classifier);
 		System.out.println("Entities: " + entityNames);
 		
 		/** Setup mongodb **/
@@ -130,6 +135,15 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 		response.flushBuffer();
 	}
 
+	private Set<String> getEntitiesFromEntityExtractor(String text, AbstractSequenceClassifier<CoreLabel> classifier) {
+		Set<String> entities = new HashSet<String>();
+		for (Triple<String, Integer, Integer> triple: classifier.classifyToCharacterOffsets(text)) {
+			entities.add(text.substring(triple.second, triple.third));
+		}
+		return entities;
+	}
+
+	/*
 	private Set<String> getEntities(String text) {
 		Locale currentLocale = new Locale ("en","US");
 		BreakIterator boundary = BreakIterator.getSentenceInstance(currentLocale);
@@ -180,4 +194,5 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 		}
 		return entities;
 	}
+	*/
 }

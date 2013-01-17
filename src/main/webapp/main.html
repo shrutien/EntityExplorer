@@ -16,7 +16,7 @@
 		</style>
 		<link href="css/bootstrap-responsive.css" rel="stylesheet">
 		<link href="css/bootstrap.min.css" rel="stylesheet">
-		
+		<link href="css/jquery-ui-1.9.1.custom.min.css" rel="stylesheet">
 		<link href="css/app.css" rel="stylesheet">
 
 		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -26,6 +26,7 @@
 		<script src="js/jquery-1.8.2.min.js"></script>
 		<script src="js/bootstrap.js"></script>
 		<script src="js/d3.v2.min.js"></script>
+		<script src="js/jquery-ui-1.9.1.custom.min.js"></script>
 		<script src="js/visualization.js"></script>
 		
 		<script>
@@ -74,7 +75,7 @@
 						var height = $("textarea#textbox").height();
 						$("textarea#textbox").remove();
 						var newDiv = $("<div>").append(options["text"]).height(height+20);
-						$("div#TextDiv button").before(newDiv);
+						$("div#TextDiv").append(newDiv);
 						
 						if (entitiesArr.length > 0) {
 							$("table#entitiesTable").show();
@@ -126,14 +127,38 @@
 					dataType : "json",
 					complete : function(xhr, textStatus) {
 						var json = $.parseJSON(xhr.responseText);
-						$("#graphWindow svg").remove();
+						$("#graphDiv svg").remove();
 						drawD3EntityGraph(json);
-						$("#graphWindow").modal("show");
+						$("#graphDiv").show();
+						console.log(json["minEdgeWeight"] + " Max: " + json["maxEdgeWeight"]);
+						$("#graphSlider").slider({
+							
+							min: json["minEdgeWeight"],
+							max: json["maxEdgeWeight"],
+							step: 0.1,
+							stop: function(event, ui) {
+								console.log("Slider value" + ui.value);
+								console.log("Max val: " + json["maxEdgeWeight"])
+								var options2 = new Object();
+								options2["graphID"] = json["graphID"];
+								options2["minEdgeWeightThreshold"] = ui.value;
+								options2["maxEdgeWeightThreshold"] = json["maxEdgeWeight"];
+								$.ajax({
+									url : "changeEdgeWeights",
+									type : "POST",
+									data : options2,
+									dataType : "json",
+									complete : function(xhr, textStatus) {
+										var json = $.parseJSON(xhr.responseText);
+										$("#graphDiv svg").remove();
+										drawD3EntityGraph(json);
+									}
+								})
+							}
+						});
 					}
 				});
 			}
-			
-			
 		</script>
 
 	</head>
@@ -167,8 +192,23 @@
 			<br />
 			<div class="row">
 				<div id="TextDiv" class="span10">
-					<textarea class="editor span10" name="text" id="textbox" placeholder="Paste your text here" rows="4">Messi or Cristiano Ronaldo?</textarea>
-					
+					<textarea class="editor span7 pull-left" name="text" id="textbox" placeholder="Paste your text here" rows="4"></textarea>
+					<div class="span2 pull-right">
+						<br />
+						<span id="chooseEntitySpan">Entity Extractor:</span>
+						<br />
+						&nbsp;&nbsp;<a href="http://nlp.stanford.edu/software/CRF-NER.shtml" target="_blank">Stanford NER</a>
+						
+						<!-- <select class="pull-right" style='max-width:180px;'>
+						  <option>OpenCalais</option>
+						  <option>2</option>
+						  <option>3</option>
+						</select> -->
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div id="optionsAndButtonDiv" class="span10">
 					<button class="btn btn-large btn-success btn-block" onclick="identifyEntitiesHandler();">Identify Entities</button>
 				</div>
 			</div>
@@ -196,15 +236,17 @@
 					<button class="btn btn-large btn-success btn-block" id="graphEntities" onclick="graphEntitiesHandler();" style="display: none">Show Links Between Selected Entities</button>
 				</div>
 			</div>
-		</div>
-		<!-- Modal for application information -->
-		<div class="modal hide fade" id="graphWindow">
-			<div class="modal-header">
-				<a href="#" class="close" data-dismiss="modal">&times;</a>
-				<h4>Entities Network Graph</h4>
-			</div>
-			<div class="modal-body" id="graphWindowBody">
-				
+			<div class="row">
+				<div class="span10">
+					<div id="graphDiv" style="display: none">
+						<br />
+						<h4>Entities Network Graph</h4>
+						<div id="graphSlider"></div>
+						<br />
+						<div id="graphWindowBody">
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		

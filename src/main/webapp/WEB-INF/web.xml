@@ -3,12 +3,22 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <display-name>Archetype Created Web Application</display-name>
-  <context-param>
+  	<display-name>Archetype Created Web Application</display-name>
+  	<context-param>
 		<param-name>LUCENE_INDEX_DIRECTORY_PATH</param-name>
 		<param-value>/Users/shubhamgupta/Documents/eclipse/workspace/WikipediaHierarchyExtractor/wikipedia-lucene-index-3/</param-value>
 	</context-param>
 	
+	<context-param>
+		<param-name>ENTITY_EXTRACTION_CLASSIFIER_DATA</param-name>
+		<param-value>/Users/shubhamgupta/Documents/eclipse/workspace/WikipediaHierarchyExtractor/classifiers/english.all.3class.distsim.crf.ser.gz</param-value>
+	</context-param>
+	
+	<servlet>
+	   	<servlet-name>ServletStart</servlet-name>
+	   	<servlet-class>edu.isi.webserver.ServerStart</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
 	<servlet>
 		<servlet-name>CategoryHierarchiesLookup</servlet-name>
 		<servlet-class>edu.isi.webserver.CategoryHierarchiesLookup</servlet-class>
@@ -43,5 +53,14 @@
 	<servlet-mapping>
 		<servlet-name>ViewCategoriesForEntity</servlet-name>
 		<url-pattern>viewCategoriesForEntity</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>ChangeEdgeWeightThresholdForGraph</servlet-name>
+		<servlet-class>edu.isi.webserver.ChangeEdgeWeightThresholdForGraph</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ChangeEdgeWeightThresholdForGraph</servlet-name>
+		<url-pattern>changeEdgeWeights</url-pattern>
 	</servlet-mapping>
 </web-app>

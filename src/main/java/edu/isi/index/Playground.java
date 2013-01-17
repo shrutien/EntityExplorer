@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleGraph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +30,18 @@ import com.mongodb.WriteConcern;
 import edu.isi.index.MongoDBHandler.DB_COLLECTIONS;
 import edu.isi.index.MongoDBHandler.categories_SCHEMA;
 import edu.isi.index.MongoDBHandler.pages_SCHEMA;
+import edu.isi.wikipediahierarchy.graph.Node;
+import edu.isi.wikipediahierarchy.graph.Node.NODE_TYPE;
 
 
 public class Playground {
 	
 	private static Logger logger = LoggerFactory.getLogger(Playground.class);
 	
-	public static void main(String[] args) {		
-		mongoGraphTest();
+	public static void main(String[] args) {
+//		System.out.println(4/Math.log(5000000));
+		 mongoGraphTest();
+//		 graphTest();
 	}
 	
 	private static void mongoGraphTest() {
@@ -55,74 +60,81 @@ public class Playground {
 		
 		/** Parse the entity db page ids received from the client **/
 		List<Integer> pageIDs = new ArrayList<Integer>();
-		pageIDs.add(4000);
+		pageIDs.add(234945);
 		pageIDs.add(591524);
 		
-		Set<String> pageTitles = new HashSet<String>();
 		// Construct the graph
-		UndirectedGraph<String, DefaultEdge> graph = createGraph(pageIDs, wikiDB, pageTitles);
+		UndirectedGraph<Node, DefaultWeightedEdge> graph = createGraph(pageIDs, wikiDB);
 		System.out.println(graph.vertexSet().size()); // 62
 		System.out.println(graph.edgeSet().size());	// 100
+		for (DefaultEdge edge: graph.edgeSet()) {
+			System.out.println(edge);
+		}
 		
 	}
 
-	private static UndirectedGraph<String, DefaultEdge> createGraph(
-			List<Integer> pageIDs, DB wikiDB, Set<String> pageTitles) {
+	private static UndirectedGraph<Node, DefaultWeightedEdge> createGraph(List<Integer> pageIDs, DB wikiDB) {
 		DBCollection pagesAndCategoriesColl = wikiDB.getCollection(DB_COLLECTIONS.pagesAndCategories.name());
 		DBCollection categoriesLinksColl = wikiDB.getCollection(DB_COLLECTIONS.categoriesLinks.name());
 		DBCollection pagesColl = wikiDB.getCollection(DB_COLLECTIONS.pages.name());
 		DBCollection categoriesColl = wikiDB.getCollection(DB_COLLECTIONS.categories.name());
 		
-		UndirectedGraph<String, DefaultEdge> graph = new SimpleGraph<String, DefaultEdge>(DefaultEdge.class);
-		Set<String> distantNeighbours = new HashSet<String>();
-		Map<String, String> distantNeighboursOrigin = new HashMap<String, String>(); 
+		UndirectedGraph<Node, DefaultWeightedEdge> graph = new SimpleGraph<Node, DefaultWeightedEdge>(DefaultWeightedEdge.class);
+		Set<Node> distantNeighbours = new HashSet<Node>();
+		Set<Node> pageTitles = new HashSet<Node>();
+		
+		Map<Node, Node> distantNeighboursOrigin = new HashMap<Node, Node>(); 
 		
 		for (Integer pageId: pageIDs) {
 			List<Integer> categoryIds = MongoDBHandler.getCategoriesForPage(pageId, pagesAndCategoriesColl);
 			String pageTitle = pagesColl.findOne(new BasicDBObject(pages_SCHEMA._id.name(), pageId)).get(pages_SCHEMA.title.name()).toString();
-			pageTitles.add(pageTitle);
-			graph.addVertex(pageTitle);
+			Node pageNode = new Node(pageTitle, NODE_TYPE.PAGE_TITLE, pageId);
+			pageTitles.add(pageNode);
+			graph.addVertex(pageNode);
 			for (Integer categoryID: categoryIds) {
 				String categoryTitle = categoriesColl.findOne(new BasicDBObject(categories_SCHEMA._id.name(), categoryID))
 						.get(categories_SCHEMA.name.name()).toString();
-				graph.addVertex(categoryTitle);
+				Node categoryNode = new Node(categoryTitle, NODE_TYPE.CATEGORY, categoryID);
+				graph.addVertex(categoryNode);
 				// System.out.println(pageTitle + " : " + categoryTitle);
 				if (!pageTitle.equals(categoryTitle))
-					graph.addEdge(pageTitle, categoryTitle);
+					graph.addEdge(pageNode, categoryNode);
 				
 				// Add one more level in the graph
 				Map<Integer, String> parentCategoryIds = MongoDBHandler.getParentCategoriesForCategory(categoryID, categoriesLinksColl);
-				for (String parentCategory: parentCategoryIds.values()) {
+				for (int parentCategoryId: parentCategoryIds.keySet()) {
+					String parentCategory = parentCategoryIds.get(parentCategoryId);
 					if (!pageTitle.equals(parentCategory)) {
-						graph.addVertex(parentCategory);
-						graph.addEdge(categoryTitle, parentCategory);
-						distantNeighbours.add(parentCategory);
-						distantNeighboursOrigin.put(parentCategory,pageTitle);
+						Node parentCategoryNode = new Node(parentCategory, NODE_TYPE.CATEGORY, parentCategoryId);
+						graph.addVertex(parentCategoryNode);
+						graph.addEdge(categoryNode, parentCategoryNode);
+						distantNeighbours.add(parentCategoryNode);
+						distantNeighboursOrigin.put(parentCategoryNode,pageNode);
 					}
 				}
 			}
 		}
-		
+
 		/** Check if any distant neighbor needs to be removed **/
-		System.out.println(distantNeighbours);
-		for (String distNbr: distantNeighbours) {
-			String orig = distantNeighboursOrigin.get(distNbr);
-			List<String> nodesToCheck = new ArrayList<String>(pageTitles);
+//		System.out.println(distantNeighbours);
+		for (Node distNbr: distantNeighbours) {
+			Node orig = distantNeighboursOrigin.get(distNbr);
+			List<Node> nodesToCheck = new ArrayList<Node>(pageTitles);
 			nodesToCheck.remove(orig);
 			boolean importantPathFound = false;
-			for (String node: nodesToCheck) {
-				List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(graph, distNbr, node);
+			for (Node node: nodesToCheck) {
+				List<DefaultWeightedEdge> path = DijkstraShortestPath.findPathBetween(graph, distNbr, node);
 				if (path == null)
 					continue;
 				else {
 					boolean originEncounteredInPath = false;
-					for (DefaultEdge edge : path) {
+					for (DefaultWeightedEdge edge : path) {
 						if (graph.getEdgeSource(edge).equals(orig) || graph.getEdgeTarget(edge).equals(orig))
 							originEncounteredInPath = true;
 						else
 							continue;
 					}
-					if (!originEncounteredInPath)
+					if (!originEncounteredInPath && path.size() < 4)
 						importantPathFound = true;
 				}
 			}
@@ -131,21 +143,55 @@ public class Playground {
 		}
 		
 		/** Remove degree 1 vertices that are not page titles **/
-		List<String> verticesToBeRemoved = new ArrayList<String>();
+		List<Node> verticesToBeRemoved = new ArrayList<Node>();
 		do {
 			verticesToBeRemoved.clear();
-			for (String v: graph.vertexSet()) {
-				if (graph.degreeOf(v) == 1 && !pageTitles.contains(v))
+			for (Node v: graph.vertexSet()) {
+				if ((graph.degreeOf(v) == 1 && !pageTitles.contains(v)) || graph.degreeOf(v) == 0)
 					verticesToBeRemoved.add(v);
 			}
 			graph.removeAllVertices(verticesToBeRemoved);
 		} while (!verticesToBeRemoved.isEmpty());
 		
-		
-		
+		/** Detect triangles **/
+		verticesToBeRemoved.clear();
+		for (Node vertex: graph.vertexSet()) {
+			if (graph.degreeOf(vertex) == 2) {
+				Set<DefaultWeightedEdge> vertexEdges = graph.edgesOf(vertex);
+				boolean isConnectedToPageTitle = false;
+				boolean otherVertexConnectedToPageTitle = false;
+				Node pageTitleVertex = null;
+				Node otherVertex = null;
+				
+				// Identify the page title vertex and the other vertex
+				for (DefaultWeightedEdge vertexEdge: vertexEdges) {
+					Node source = graph.getEdgeSource(vertexEdge);
+					Node target = graph.getEdgeTarget(vertexEdge);
+					
+					if (pageTitles.contains(source)) {
+						isConnectedToPageTitle = true;
+						pageTitleVertex = source;
+					} else if (pageTitles.contains(target)) {
+						isConnectedToPageTitle = true;
+						pageTitleVertex = target;
+					} else if (source.equals(vertex)) {
+						otherVertex = target;
+					} else if (target.equals(vertex)) {
+						otherVertex = source;
+					}
+				}
+				if (pageTitleVertex != null && graph.containsEdge(pageTitleVertex, otherVertex))
+					otherVertexConnectedToPageTitle = true;
+				if (isConnectedToPageTitle && otherVertexConnectedToPageTitle) {
+					verticesToBeRemoved.add(vertex);
+				}
+					
+			}
+		}
+		graph.removeAllVertices(verticesToBeRemoved);
 		return graph;
 	}
-
+	
 	private static void graphTest() {
 		UndirectedGraph<String, DefaultEdge> g =
 	            new SimpleGraph<String, DefaultEdge>(DefaultEdge.class);
