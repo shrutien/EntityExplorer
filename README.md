@@ -18,19 +18,19 @@ It can be deployed as a regular Tomcat web-app or in a Jetty container. `mvn pac
 
 ###  Frequently Asked Questions
 
-- How to create Wikipedia index and store links in MongoDB database?
+- **How to create Wikipedia index and store links in MongoDB database?**
 
 	WikipediaIndexer.java creates Lucene index and stores the links in the database. It expects arguments of full file path to Wikipedia dump file and the name of the MongoDB database. Example execution using Maven:
 	`mvn exec:java -Dexec.mainClass="edu.isi.index.WikipediaIndexer" -Dexec.args="/tmp/wikipedia/articles.xml.bz2 wikipedia"`
 
-- How to change the edge weights in the visualization?
+- **How to change the edge weights in the visualization?**
 
 	Use the slider! It still needs some work though.
 
-- How are entities from the text extracted?
+- **How are entities extracted from the text?**
 
-	Currently we use 2 entity extarctors. 
-	* [Stanford NER:](http://nlp.stanford.edu/software/CRF-NER.shtml)
+	Currently we provide choice of following entity extractors:
+	* [Stanford NER](http://nlp.stanford.edu/software/CRF-NER.shtml)
 	* Basic Capitalization: We treat the words starting with capital letters as entities.
 
 	In future we also plan to integrate the [CALAIS](http://www.opencalais.com/) system
