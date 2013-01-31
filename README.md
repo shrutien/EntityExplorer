@@ -1,11 +1,11 @@
 WikipediaHierarchyExtractor
 ===========================
 
-This is a web-application that allows a user to identify entities from a given text, and then visualize relationships between them by linking them through Wikipedia categories. It generates an interactive graph of relationships, where the user can increase the edges weights to view more specialized relationships between entities. Core technologies/frameworks/libraries used are: Java, D3, Maven, MongoDB, Twitter Bootstrap, and Lucene.
+It is a web-application that allows a user to identify entities from a given text, and then visualize relationships between them by linking them through Wikipedia categories. It generates an interactive graph of relationships, where the user can increase the edge weights to view more specialized relationships. Core technologies/frameworks/libraries used are: Java, D3, Maven, MongoDB, Twitter Bootstrap, and Lucene.
 
 ### Installation
 
-It can be deployed as a regular Tomcat web-app or in a Jetty container. `mvn package` can be run inside the main directory to create the WAR file inside the target folder. Certain parameters need to be configured in the web.xml file:
+It can be deployed as a regular Tomcat web-app or in a Jetty container. `mvn package` can be run from inside the main directory to create the WAR file inside the target folder. Certain parameters need to be configured in the web.xml file:
 
 - `LUCENE_INDEX_DIRECTORY_PATH`: Full file path to the directory where your Wikipedia index is stored.
 - `ENTITY_EXTRACTION_CLASSIFIER_DATA`: Full file path to the Stanford NER classifier file.
