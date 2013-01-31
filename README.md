@@ -24,4 +24,12 @@ It can be deployed as a regular Tomcat web-app or in a Jetty container. `mvn pac
 	`mvn exec:java -Dexec.mainClass="edu.isi.index.WikipediaIndexer" -Dexec.args="/tmp/wikipedia/articles.xml.bz2 wikipedia"`
 
 - How to change the edge weights in the visualization?
+
 	Use the slider! It still needs some work though.
+
+- How are entities from the text extracted?
+
+	Currently we use 2 entity extarctors. 
+	* [Stanford NER:](http://nlp.stanford.edu/software/CRF-NER.shtml)
+	* Basic Capitalization: We treat the words starting with capital letters as entities.
+	In future we also plan to integrate the [CALAIS](http://www.opencalais.com/) system
