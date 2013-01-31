@@ -12,6 +12,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.isi.index.MongoDBHandler;
 import edu.isi.webserver.CategoryHierarchiesLookup.CONTEXT_PARAM_ATTRIBUTE;
 import edu.isi.webserver.CategoryHierarchiesLookup.SERVLET_CONTEXT_ATTRIBUTE;
 import edu.stanford.nlp.ie.AbstractSequenceClassifier;
@@ -44,6 +45,10 @@ public class ServerStart extends HttpServlet {
 		AbstractSequenceClassifier<CoreLabel> classifier = CRFClassifier.getClassifierNoExceptions(serializedClassifier);
 		ctx.setAttribute(SERVLET_CONTEXT_ATTRIBUTE.entityExtractorClassifier.name(), classifier);
 		logger.info("done");
+		
+		String mongodbDbName = ctx.getInitParameter(CONTEXT_PARAM_ATTRIBUTE.MONGODB_DB_NAME.name());
+		MongoDBHandler.setDB_NAME(mongodbDbName);
+		logger.info("Using MongoDB database: " + mongodbDbName);
 		
 		System.out.println("************");
 		System.out.println("Server start servlet initialized successfully..");

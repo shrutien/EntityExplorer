@@ -17,6 +17,8 @@
 		<link href="css/bootstrap-responsive.css" rel="stylesheet">
 		<link href="css/bootstrap.min.css" rel="stylesheet">
 		<link href="css/jquery-ui-1.9.1.custom.min.css" rel="stylesheet">
+		<link href="css/alertify.core.css" rel="stylesheet">
+		<link href="css/alertify.default.css" rel="stylesheet">
 		<link href="css/app.css" rel="stylesheet">
 
 		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -27,6 +29,7 @@
 		<script src="js/bootstrap.js"></script>
 		<script src="js/d3.v2.min.js"></script>
 		<script src="js/jquery-ui-1.9.1.custom.min.js"></script>
+		<script src="js/alertify.min.js"></script>
 		<script src="js/visualization.js"></script>
 		
 		<script>
@@ -42,6 +45,8 @@
 			function identifyEntitiesHandler() {
 				var options = new Object();
 				options["text"] = $("textarea#textbox").val();
+				options["entityExtractor"] = $("#entitySelector").val();
+				console.log(options["entityExtractor"]);
 				
 				var returned = $.ajax({
 					url : "identifyEntities",
@@ -59,10 +64,8 @@
 							var entityName = entity["entityName"];
 							var regex = new RegExp(entityName, "ig");
 							options["text"] = options["text"].replace(regex, '<span class="highlight-find">' + entityName + '</span>');
-							console.log(options["text"]);
 							$("table#entitiesTable tbody").append($("<tr>")
-								.append($("<td>").text(entity["title"]))
-								.append($("<td>").append($("<a>").attr("href", entity["URL"]).attr("target", "_blank").text("Wikipedia Link")))
+								.append($("<td>").append($("<a>").attr("href", entity["URL"]).attr("target", "_blank").text(entity["title"])))
 								.append($("<td>").append($("<input>").attr("type", "checkbox").attr('checked', true)).addClass("checkboxCell"))
 								.append($('<td>').append($("<button>").addClass('btn btn-small btn-info btn-block').click(viewCategoryHandler).text("View Categories")))
 								.hover(function() {
@@ -118,7 +121,12 @@
 					graphEntities.push($(this).data("dbID"));
 				});
 				options["entities"] = JSON.stringify(graphEntities);
-				console.log(options["entities"]);
+				
+				if (graphEntities.length < 2) {
+					alertify.error("More than 1 entity required!");
+					return false;
+				}
+					
 				
 				var returned = $.ajax({
 					url : "graphEntities",
@@ -128,6 +136,11 @@
 					complete : function(xhr, textStatus) {
 						var json = $.parseJSON(xhr.responseText);
 						$("#graphDiv svg").remove();
+						if(json["nodes"].length == 0) {
+							alertify.log("No links found between the entities!", "", 0);
+							return false;
+						}
+							
 						drawD3EntityGraph(json);
 						$("#graphDiv").show();
 						console.log(json["minEdgeWeight"] + " Max: " + json["maxEdgeWeight"]);
@@ -192,18 +205,17 @@
 			<br />
 			<div class="row">
 				<div id="TextDiv" class="span10">
-					<textarea class="editor span7 pull-left" name="text" id="textbox" placeholder="Paste your text here" rows="4"></textarea>
+					<textarea class="editor span7 pull-left" name="text" id="textbox" placeholder="Paste your text here" rows="4">Messi or Tata Motors</textarea>
 					<div class="span2 pull-right">
 						<br />
 						<span id="chooseEntitySpan">Entity Extractor:</span>
 						<br />
-						&nbsp;&nbsp;<a href="http://nlp.stanford.edu/software/CRF-NER.shtml" target="_blank">Stanford NER</a>
+						<!-- &nbsp;&nbsp;<a href="http://nlp.stanford.edu/software/CRF-NER.shtml" target="_blank">Stanford NER</a> -->
 						
-						<!-- <select class="pull-right" style='max-width:180px;'>
-						  <option>OpenCalais</option>
-						  <option>2</option>
-						  <option>3</option>
-						</select> -->
+						<select class="pull-right" style='max-width:180px;' id="entitySelector">
+						  <option value="stanfordNER">Stanford NER</option>
+						  <option value="simpleCapitalization">Simple Capitalization</option>
+						</select>
 					</div>
 				</div>
 			</div>
@@ -220,8 +232,7 @@
 					<table id="entitiesTable" style="display: none" class="table table-bordered">
 						<thead>
 							<tr>
-								<th>Entity Name</th>
-								<th>Wikipedia URL</th>
+								<th>Wikipedia Entity Name</th>
 								<th>Use in Graph</th>
 								<th>Wikipedia Categories</th>
 							</tr>

@@ -59,7 +59,7 @@ public class CategoryHierarchiesLookup extends HttpServlet {
 	}
 	
 	public enum CONTEXT_PARAM_ATTRIBUTE {
-		LUCENE_INDEX_DIRECTORY_PATH, ENTITY_EXTRACTION_CLASSIFIER_DATA
+		LUCENE_INDEX_DIRECTORY_PATH, ENTITY_EXTRACTION_CLASSIFIER_DATA, MONGODB_DB_NAME
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

@@ -3,8 +3,10 @@ package edu.isi.webserver;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.text.BreakIterator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,23 +45,36 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 	private static String WIKIPEDIA_URL_PREFIX = "http://en.wikipedia.org/wiki?curid=";
 	
 	private enum SERVLET_PARAM_ATTR {
-		text, parser
+		text, entityExtractor
 	}
 	
 	private enum OUTPUT_JSONSchema {
 		entities, title, URL, entityName, dbID
 	}
 	
+	private enum ENTITY_EXTRACTION_SYSTEM {
+		stanfordNER, simpleCapitalization
+	}
+	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String text = request.getParameter(SERVLET_PARAM_ATTR.text.name()).trim();
+		ENTITY_EXTRACTION_SYSTEM entityExtractor = ENTITY_EXTRACTION_SYSTEM.valueOf(request.getParameter(SERVLET_PARAM_ATTR.entityExtractor.name()));
 		
 		/** Extract the entities **/
-//		Set<String> entityNames = getEntities(text);
-		@SuppressWarnings("unchecked")
-		AbstractSequenceClassifier<CoreLabel> classifier = 
-				(AbstractSequenceClassifier<CoreLabel>) request.getServletContext().getAttribute(SERVLET_CONTEXT_ATTRIBUTE.entityExtractorClassifier.name());
-		Set<String> entityNames = getEntitiesFromEntityExtractor(text, classifier);
-		System.out.println("Entities: " + entityNames);
+		Set<String> entityNames = null;
+		if (entityExtractor == ENTITY_EXTRACTION_SYSTEM.stanfordNER) {
+			@SuppressWarnings("unchecked")
+			AbstractSequenceClassifier<CoreLabel> classifier = 
+					(AbstractSequenceClassifier<CoreLabel>) request.getServletContext().getAttribute(SERVLET_CONTEXT_ATTRIBUTE.entityExtractorClassifier.name());
+			entityNames = getEntitiesFromEntityExtractor(text, classifier);
+			System.out.println("Entities: " + entityNames);
+		} else if (entityExtractor == ENTITY_EXTRACTION_SYSTEM.simpleCapitalization) {
+			entityNames = getEntities(text);
+		}
+		if (entityNames == null) {
+			logger.error("Null set retrieved for entities!");
+			entityNames = new HashSet<String>();	// To keep the code going. Later use a better error propagation scheme.
+		}
 		
 		/** Setup mongodb **/
 		Mongo m = null;
@@ -79,7 +94,6 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 		DB wikiDB = m.getDB(MongoDBHandler.DB_NAME);
 		
 		/** Get the top WikiPage object for each entity (by doing finding the appropriate wiki page for the entity name) **/
-		///// REPLACE THIS CODE ////////////////
 		IndexSearcher indexSearcher = null;
 		Object indexSearcherObj = request.getServletContext().getAttribute(SERVLET_CONTEXT_ATTRIBUTE.indexSearcher.name());
 		if (indexSearcherObj == null) {
@@ -90,7 +104,6 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 		} else {
 			indexSearcher = (IndexSearcher) indexSearcherObj;
 		}
-		////////////////////////////
 		
 		Map<String, WikiPage> wikiPages = new HashMap<String, WikiPage>();
 		for (String entity: entityNames) {
@@ -143,7 +156,6 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 		return entities;
 	}
 
-	/*
 	private Set<String> getEntities(String text) {
 		Locale currentLocale = new Locale ("en","US");
 		BreakIterator boundary = BreakIterator.getSentenceInstance(currentLocale);
@@ -194,5 +206,4 @@ public class IdentifyEntitiesServlet extends HttpServlet {
 		}
 		return entities;
 	}
-	*/
 }

@@ -23,11 +23,20 @@ import edu.jhu.nlp.wikipedia.WikiXMLParserFactory;
 
 public class WikipediaIndexer {
 
-	public static final String INDEX_DIRECTORY = "wikipedia-lucene-index-3";
+	public static final String INDEX_DIRECTORY = "wikipedia-lucene-index";
 	public static final Version APP_LUCENE_VERSION = Version.LUCENE_36;
 	private static Logger logger = LoggerFactory.getLogger(WikipediaIndexer.class);
 	
 	public static void main(String[] args) {
+		if (args.length < 2) {
+			System.out.println("Usage: WikipediaIndexer [Wikipedia Dump File Path] [MongoDB Database Name]");
+			return;
+		}
+			
+		String wikipediaDumpFilePath = args[0];
+		String databaseName = args[1];
+		MongoDBHandler.setDB_NAME(databaseName);
+		
 		logger.info("Starting application ...");
 		/** Setup mongodb **/
 		Mongo m = null;
@@ -57,7 +66,7 @@ public class WikipediaIndexer {
 			PageCallbackHandler handler = new SAXWikiPageHandler(indexWriter, wikiDB);
 			
 			/** Start parsing the dump **/
-			WikiXMLParser wxsp = WikiXMLParserFactory.getSAXParser("/Users/shubhamgupta/Downloads/enwiki-latest-pages-articles.xml.bz2");
+			WikiXMLParser wxsp = WikiXMLParserFactory.getSAXParser(wikipediaDumpFilePath);
 			try {
 				wxsp.setPageCallback(handler);
 				wxsp.parse();

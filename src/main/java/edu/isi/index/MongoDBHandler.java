@@ -19,6 +19,10 @@ public class MongoDBHandler {
 	public static String HOSTNAME = "localhost";
 	public static String DB_NAME = "wiki3";
 	
+	public static void setDB_NAME(String dB_NAME) {
+		DB_NAME = dB_NAME;
+	}
+
 	public enum DB_COLLECTIONS {
 		pages, categories, categoriesLinks, pagesAndCategories, pagesInfoboxAttributes, pagecache
 	}

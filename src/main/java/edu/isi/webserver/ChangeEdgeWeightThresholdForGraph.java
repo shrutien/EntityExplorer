@@ -44,8 +44,8 @@ public class ChangeEdgeWeightThresholdForGraph extends HttpServlet {
 		
 		GraphUtil.cleanupGraph(graphFiltered);
 		
-		System.out.println("Original graph. Vertices count: " + graph.vertexSet().size() + " . Edges count: " + graph.edgeSet().size());
-		System.out.println("Filtered graph. Vertices count: " + graphFiltered.vertexSet().size() + " . Edges count: " + graphFiltered.edgeSet().size());
+		//System.out.println("Original graph. Vertices count: " + graph.vertexSet().size() + " . Edges count: " + graph.edgeSet().size());
+		//System.out.println("Filtered graph. Vertices count: " + graphFiltered.vertexSet().size() + " . Edges count: " + graphFiltered.edgeSet().size());
 		
 		JSONObject graphJson = GraphUtil.createJSONForGraph(graphFiltered, graphID, minEdgeWeight, maxEdgeWeight);
 		response.setCharacterEncoding("UTF-8");
