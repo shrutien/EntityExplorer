@@ -18,5 +18,4 @@ It can be deployed as a regular Tomcat web-app or in a Jetty container. `mvn pac
 - How to create Wikipedia index and store links in MongoDB database?
 
 WikipediaIndexer.java creates Lucene index and stores the links in the database. It expects arguments of full file path to Wikipedia dump file and the name of the MongoDB database. Example execution using Maven:
-
-`mvn exec:java -Dexec.mainClass="edu.isi.index.WikipediaIndexer" -Dexec.args="/tmp/wikipedia-dump/enwiki-latest-pages-articles.xml.bz2 wikipedia-relationships"`
+`mvn exec:java -Dexec.mainClass="edu.isi.index.WikipediaIndexer" -Dexec.args="/tmp/wikipedia/articles.xml.bz2 wikipedia"`
