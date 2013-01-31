@@ -32,4 +32,5 @@ It can be deployed as a regular Tomcat web-app or in a Jetty container. `mvn pac
 	Currently we use 2 entity extarctors. 
 	* [Stanford NER:](http://nlp.stanford.edu/software/CRF-NER.shtml)
 	* Basic Capitalization: We treat the words starting with capital letters as entities.
+
 	In future we also plan to integrate the [CALAIS](http://www.opencalais.com/) system
