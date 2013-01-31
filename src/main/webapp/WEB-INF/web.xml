@@ -6,12 +6,12 @@
   	<display-name>Archetype Created Web Application</display-name>
   	<context-param>
 		<param-name>LUCENE_INDEX_DIRECTORY_PATH</param-name>
-		<param-value>/Users/shubhamgupta/Documents/eclipse/workspace/WikipediaHierarchyExtractor/wikipedia-lucene-index/</param-value>
+		<param-value>/usr/local/home/shubhamg/wikipedia-lucene-index/</param-value>
 	</context-param>
 	
 	<context-param>
 		<param-name>ENTITY_EXTRACTION_CLASSIFIER_DATA</param-name>
-		<param-value>/Users/shubhamgupta/Documents/eclipse/workspace/WikipediaHierarchyExtractor/classifiers/english.all.3class.distsim.crf.ser.gz</param-value>
+		<param-value>/usr/local/home/shubhamg/classifiers/english.all.3class.distsim.crf.ser.gz</param-value>
 	</context-param>
 	
 	<context-param>
