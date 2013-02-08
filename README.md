@@ -1,4 +1,4 @@
-WikipediaHierarchyExtractor
+Entity Explorer
 ===========================
 
 It is a web-application that allows a user to identify entities from a given text, and then visualize relationships between them by linking them through Wikipedia categories. It generates an interactive graph of relationships, where the user can increase the edge weights to view more specialized relationships. Core technologies/frameworks/libraries used are: Java, D3, Maven, MongoDB, Twitter Bootstrap, and Lucene.
