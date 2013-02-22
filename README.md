@@ -5,7 +5,7 @@ It is a web-application that allows a user to identify entities from a given tex
 
 ### Installation
 
-This software uses Maven as the build tool, so it is required to be installed on the system (Mac OSX has it already installed). Details for downloading and installing Maven are [here](http://maven.apache.org/download.cgi). Once installed, run `mvn package` from inside the main directory to create a WAR file inside the target folder. It can then be deployed as a regular Tomcat web-app or in a Jetty container (by copying and pasting the WAR file to the webapps folder inside the Tomcat). Certain parameters need to be configured in the web.xml file:
+This software uses Maven as the build tool (Mac OSX has it built-in). Details for downloading and installing Maven are [here](http://maven.apache.org/download.cgi). Once installed, run `mvn package` from inside the main directory to create a WAR file inside the target folder. It can then be deployed as a regular Tomcat web-app or in a Jetty container (by copying and pasting the WAR file to the webapps folder inside the Tomcat). Certain parameters need to be configured in the web.xml file:
 
 - `LUCENE_INDEX_DIRECTORY_PATH`: Full file path to the directory where your Wikipedia index is stored.
 - `ENTITY_EXTRACTION_CLASSIFIER_DATA`: Full file path to the Stanford NER classifier file.
