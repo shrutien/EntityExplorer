@@ -14,7 +14,7 @@ This software uses Maven as the build tool (Mac OSX provides Maven in it's defau
 ### Screenshot
 
 <img alt="Demo picture"
-        src="http://isi.edu/~shubhamg/demo.png">
+        src="http://isi.edu/~shubhamg/docs/demo.png">
 
 ###  Frequently Asked Questions
 
